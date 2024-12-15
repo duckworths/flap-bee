@@ -1,82 +1,73 @@
-/* Reset margins and padding */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Body for full viewport height and center alignment */
 body {
     margin: 0;
-    height: 100vh;
-    background: #70c5ce; /* Sky blue background */
+    padding: 0;
+    overflow: hidden; /* Prevent scrolling */
+    background: #70c5ce;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    height: 100vh;
 }
 
-/* Game container to hold canvas and overlays */
+/* Parent container to hold canvas and overlays */
 .game-container {
-    position: relative;
-    width: 320px; /* Fixed game width */
-    height: 480px; /* Fixed game height */
-    background-color: #f5f5f5;
-    overflow: hidden; /* Ensures content stays inside */
-    border: 2px solid #333; /* Optional: adds a border */
+    position: relative; /* Ensure overlays are properly positioned */
+    width: 100%;
+    max-width: 320px; /* Maintain the game's original aspect ratio */
+    height: 100%;
+    max-height: 480px; /* Maintain the game's original aspect ratio */
+    margin: auto;
+    background-color: #f5f5f5; /* Optional: Change background color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Prevent elements from spilling outside */
+    box-sizing: border-box;
 }
 
-/* Canvas */
 canvas {
     display: block;
     width: 100%;
     height: 100%;
-    background: #fff; /* Optional: fallback for no background image */
+    max-width: 320px;
+    max-height: 480px;
 }
 
-/* Overlays for Start and Game Over screens */
-#startScreen,
-#gameOverScreen {
-    position: absolute; /* Overlay over canvas */
+/* Start and Game Over Overlays */
+#startScreen, #gameOverScreen {
+    position: absolute; /* Ensure these elements cover the canvas */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    background: rgba(112, 197, 206, 0.8); /* Semi-transparent background */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    color: white;
-    font-family: Arial, sans-serif;
-    z-index: 10; /* Ensure it’s above the canvas */
+    z-index: 2; /* Place above the canvas */
 }
 
-/* Hidden class to hide inactive screens */
-.hidden {
-    display: none;
+#startScreen.hidden, #gameOverScreen.hidden {
+    display: none; /* Hide when inactive */
 }
 
-/* Buttons styling */
 button {
     padding: 10px 20px;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
-    margin: 10px;
-    background-color: #ffcc00;
-    color: #333;
     border: none;
     border-radius: 5px;
-    transition: background 0.3s ease;
+    background-color: #ffcc00;
+    transition: background-color 0.3s;
 }
 
 button:hover {
     background-color: #ffdb4d;
 }
 
-/* Game Over text adjustments */
 #gameOverScreen p {
-    font-size: 20px;
-    margin: 5px 0;
+    margin: 10px 0;
+    font-size: 24px;
+    color: #333;
 }
