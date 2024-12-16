@@ -109,6 +109,24 @@
         // Your existing game code goes here...
         // Ensure that when the game ends, you call gameOver with the appropriate parameters
     </script>
+    // Add a new score to Firestore
+function addScore(playerName, playerScore) {
+  firebase.firestore().collection("leaderboard").add({
+    name: playerName,
+    score: playerScore,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    console.log("Score added!");
+  })
+  .catch((error) => {
+    console.error("Error adding score: ", error);
+  });
+}
+
+// Example usage:
+addScore("PlayerOne", 1500);
+
 
     <script>
         // Your existing game logic (from the original script tag)
