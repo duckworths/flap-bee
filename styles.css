@@ -59,6 +59,7 @@ canvas {
 #beginButton:hover, #restartButton:hover {
     background-color: #45a049;
 }
+beginButton.addEventListener('click', startGame);
 
 /* Hidden class */
 .hidden {
