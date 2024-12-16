@@ -1,73 +1,75 @@
 body {
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevent scrolling */
-    background: #70c5ce;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    font-family: Arial, sans-serif;
+    background-color: #87CEEB; /* Sky blue background */
+    text-align: center; /* Center-align content */
 }
 
-/* Parent container to hold canvas and overlays */
+h1, h2 {
+    margin: 10px;
+}
+
+#leaderboard {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #fff;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    width: 200px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+#leaderboard h2 {
+    font-size: 18px;
+    color: #333;
+}
+
+#leaderboard p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+}
+
 .game-container {
-    position: relative; /* Ensure overlays are properly positioned */
-    width: 100%;
-    max-width: 320px; /* Maintain the game's original aspect ratio */
-    height: 100%;
-    max-height: 480px; /* Maintain the game's original aspect ratio */
-    margin: auto;
-    background-color: #f5f5f5; /* Optional: Change background color */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden; /* Prevent elements from spilling outside */
-    box-sizing: border-box;
+    position: relative;
+    display: inline-block;
+    margin-top: 50px;
 }
 
-canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    max-width: 320px;
-    max-height: 480px;
-}
-
-/* Start and Game Over Overlays */
 #startScreen, #gameOverScreen {
-    position: absolute; /* Ensure these elements cover the canvas */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(112, 197, 206, 0.8); /* Semi-transparent background */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 2; /* Place above the canvas */
-}
-
-#startScreen.hidden, #gameOverScreen.hidden {
-    display: none; /* Hide when inactive */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
 button {
     padding: 10px 20px;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
+    background-color: #4CAF50;
+    color: #fff;
     border: none;
     border-radius: 5px;
-    background-color: #ffcc00;
     transition: background-color 0.3s;
 }
 
 button:hover {
-    background-color: #ffdb4d;
+    background-color: #45a049;
 }
 
-#gameOverScreen p {
-    margin: 10px 0;
-    font-size: 24px;
-    color: #333;
+canvas {
+    background-color: #ffdb58; /* Add fallback color in case background image fails */
+    display: block;
+    margin: auto;
+    border: 2px solid #333;
 }
