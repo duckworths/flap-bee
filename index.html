@@ -62,13 +62,35 @@
         backgroundImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/background.png';
 
         // Functions
-        function startGame() {
-    // Hide the start screen
-    startScreen.classList.add('hidden'); 
-    gameOverScreen.classList.add('hidden'); // Ensure game over screen is hidden
-    init(); // Initialize the game
-    gameLoop(); // Start the game loop
+       function startGame() {
+    // Hide the start screen and game over screen
+    startScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+
+    // Initialize the game
+    init();
+    gameLoop();
 }
+
+function endGame() {
+    gameRunning = false;
+    cancelAnimationFrame(animationId);
+    removeEventListeners();
+
+    // Show Game Over Screen
+    finalScore.textContent = `Score: ${score}`;
+    if (score > highScore) highScore = score;
+    highScoreDisplay.textContent = `High Score: ${highScore}`;
+    gameOverScreen.classList.remove('hidden');
+}
+
+function restartGame() {
+    // Hide game over screen and reinitialize game
+    gameOverScreen.classList.add('hidden');
+    init();
+    gameLoop();
+}
+
         function initGame() {
             bird = { x: 50, y: 150, width: 30, height: 30, gravity: 0.3, lift: -6, velocity: 0 };
             pipes = [];
