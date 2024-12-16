@@ -48,6 +48,27 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
     <script>
+        function displayLeaderboard() {
+  const leaderboardContainer = document.getElementById("leaderboard"); // Ensure you have an element with this ID
+
+  db.collection("leaderboard")
+    .orderBy("score", "desc")
+    .limit(10)
+    .get()
+    .then((querySnapshot) => {
+      leaderboardContainer.innerHTML = "<h2>Leaderboard</h2>";
+      querySnapshot.forEach((doc, index) => {
+        const data = doc.data();
+        leaderboardContainer.innerHTML += `
+          <p>${index + 1}. ${data.name} - ${data.score}</p>
+        `;
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching leaderboard: ", error);
+    });
+}
+
         const canvas = document.getElementById('flapBee');
         const ctx = canvas.getContext('2d');
 
