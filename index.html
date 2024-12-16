@@ -56,6 +56,13 @@
         backgroundImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/background.png';
 
         // Functions
+        function startGame() {
+    // Hide the start screen
+    startScreen.classList.add('hidden'); 
+    gameOverScreen.classList.add('hidden'); // Ensure game over screen is hidden
+    init(); // Initialize the game
+    gameLoop(); // Start the game loop
+}
         function initGame() {
             bird = { x: 50, y: 150, width: 30, height: 30, gravity: 0.3, lift: -6, velocity: 0 };
             pipes = [];
