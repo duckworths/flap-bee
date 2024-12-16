@@ -4,7 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flap-Bee</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #e6f7ff; /* Light blue background */
+        }
+        .game-container {
+            position: relative;
+            width: 320px;
+            height: 480px;
+            margin: 50px auto;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        canvas {
+            display: block;
+        }
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
@@ -17,7 +64,7 @@
             <button id="beginButton">Click to Begin</button>
         </div>
 
-        <!-- Single Game Over Screen -->
+        <!-- Game Over Screen -->
         <div id="gameOverScreen" class="hidden">
             <h2>Game Over!</h2>
             <p id="finalScore">Score: 0</p>
@@ -55,37 +102,23 @@
         const backgroundImage = new Image();
         backgroundImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/background.png';
 
-        // Functions
+        // Start Game
         function startGame() {
-            // Hide the start screen and game over screen
+            // Hide screens
             startScreen.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
 
-            // Initialize the game
+            // Initialize game
             initGame();
             gameLoop();
         }
 
-        function endGame() {
-            gameRunning = false;
-            cancelAnimationFrame(animationId);
-            removeEventListeners();
-
-            // Show Game Over Screen
-            finalScore.textContent = `Score: ${score}`;
-            if (score > highScore) highScore = score;
-            highScoreDisplay.textContent = `High Score: ${highScore}`;
-            gameOverScreen.classList.remove('hidden');
-        }
-
-        function restartGame() {
-            // Hide game over screen and reinitialize game
-            gameOverScreen.classList.add('hidden');
-            initGame();
-            gameLoop();
-        }
-
+        // Initialize Game
         function initGame() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+
+            // Initialize variables
             bird = { x: 50, y: 150, width: 30, height: 30, gravity: 0.3, lift: -6, velocity: 0 };
             pipes = [];
             score = 0;
@@ -96,11 +129,10 @@
                 y: Math.floor(Math.random() * (canvas.height / devicePixelRatio / 2)),
             });
 
-            gameOverScreen.classList.add('hidden');
             addEventListeners();
-            // gameLoop(); // Removed to prevent multiple loops
         }
 
+        // Event Listeners
         function addEventListeners() {
             canvas.addEventListener('mousedown', handleInput);
             canvas.addEventListener('touchstart', handleInput);
@@ -115,6 +147,7 @@
             bird.velocity = bird.lift;
         }
 
+        // Game Loop
         function gameLoop() {
             if (gameRunning) {
                 ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
@@ -129,14 +162,17 @@
             }
         }
 
+        // Draw Background
         function drawBackground() {
             ctx.drawImage(backgroundImage, 0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
         }
 
+        // Draw Bird
         function drawBird() {
             ctx.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
         }
 
+        // Update Bird
         function updateBird() {
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
@@ -146,6 +182,7 @@
             }
         }
 
+        // Draw Pipes
         function drawPipes() {
             pipes.forEach(pipe => {
                 ctx.drawImage(pipeImage, pipe.x, pipe.y, 40, 320);
@@ -153,6 +190,7 @@
             });
         }
 
+        // Update Pipes
         function updatePipes() {
             pipes.forEach((pipe, index) => {
                 pipe.x -= 2;
@@ -174,15 +212,34 @@
             });
         }
 
+        // Draw Score
         function drawScore() {
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial';
             ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
-        // Event Listeners
+        // End Game
+        function endGame() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            removeEventListeners();
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+
+            // Update scores
+            finalScore.textContent = `Score: ${score}`;
+            if (score > highScore) highScore = score;
+            highScoreDisplay.textContent = `High Score: ${highScore}`;
+
+            // Show Game Over screen
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        // Button Event Listeners
         beginButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', startGame); // Use startGame for restarting as well
+        restartButton.addEventListener('click', startGame);
     </script>
 </body>
 </html>
