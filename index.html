@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flap-Bee Leaderboard</title>
+    <title>Flap-Bee Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -67,10 +67,14 @@
             const scoresDiv = document.getElementById("scores");
             const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(5));
             onSnapshot(q, (snapshot) => {
-                scoresDiv.innerHTML = "";
-                snapshot.forEach((doc, index) => {
+                scoresDiv.innerHTML = "<h2>Leaderboard</h2>";
+                let rank = 1;
+                snapshot.forEach((doc) => {
                     const data = doc.data();
-                    scoresDiv.innerHTML += `<p>${index + 1}. ${data.name} - ${data.score}</p>`;
+                    if (data.name && typeof data.score === "number") {
+                        scoresDiv.innerHTML += `<p>${rank}. ${data.name} - ${data.score}</p>`;
+                        rank++;
+                    }
                 });
             });
         }
@@ -99,7 +103,7 @@
 
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#ADD8E6";
+            ctx.fillStyle = "#87CEEB"; // Sky blue background
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Bird
@@ -115,6 +119,7 @@
 
             // Score
             ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
             ctx.fillText(`Score: ${score}`, 10, 20);
         }
 
@@ -155,7 +160,7 @@
             finalScoreDisplay.textContent = `Score: ${score}`;
             if (score > highScore) highScore = score;
             highScoreDisplay.textContent = `High Score: ${highScore}`;
-            submitScore(playerNameInput.value || "Player", score);
+            submitScore(playerNameInput.value.trim() || "Anonymous", score);
             gameOverScreen.classList.remove("hidden");
         }
 
