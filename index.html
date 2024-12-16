@@ -13,17 +13,11 @@
 
         <!-- Start Screen -->
         <div id="startScreen">
-    <h1>FLAP-BEE</h1>
-    <button id="beginButton">Click to Begin</button>
-</div>
+            <h1>FLAP-BEE</h1>
+            <button id="beginButton">Click to Begin</button>
+        </div>
 
-<div id="gameOverScreen" class="hidden">
-    <h2>Game Over!</h2>
-    <p id="finalScore">Score: 0</p>
-    <p id="highScoreDisplay">High Score: 0</p>
-    <button id="restartButton">Play Again</button>
-</div>
-        <!-- Game Over Screen -->
+        <!-- Single Game Over Screen -->
         <div id="gameOverScreen" class="hidden">
             <h2>Game Over!</h2>
             <p id="finalScore">Score: 0</p>
@@ -62,34 +56,34 @@
         backgroundImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/background.png';
 
         // Functions
-       function startGame() {
-    // Hide the start screen and game over screen
-    startScreen.classList.add('hidden');
-    gameOverScreen.classList.add('hidden');
+        function startGame() {
+            // Hide the start screen and game over screen
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
 
-    // Initialize the game
-    init();
-    gameLoop();
-}
+            // Initialize the game
+            initGame();
+            gameLoop();
+        }
 
-function endGame() {
-    gameRunning = false;
-    cancelAnimationFrame(animationId);
-    removeEventListeners();
+        function endGame() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            removeEventListeners();
 
-    // Show Game Over Screen
-    finalScore.textContent = `Score: ${score}`;
-    if (score > highScore) highScore = score;
-    highScoreDisplay.textContent = `High Score: ${highScore}`;
-    gameOverScreen.classList.remove('hidden');
-}
+            // Show Game Over Screen
+            finalScore.textContent = `Score: ${score}`;
+            if (score > highScore) highScore = score;
+            highScoreDisplay.textContent = `High Score: ${highScore}`;
+            gameOverScreen.classList.remove('hidden');
+        }
 
-function restartGame() {
-    // Hide game over screen and reinitialize game
-    gameOverScreen.classList.add('hidden');
-    init();
-    gameLoop();
-}
+        function restartGame() {
+            // Hide game over screen and reinitialize game
+            gameOverScreen.classList.add('hidden');
+            initGame();
+            gameLoop();
+        }
 
         function initGame() {
             bird = { x: 50, y: 150, width: 30, height: 30, gravity: 0.3, lift: -6, velocity: 0 };
@@ -104,12 +98,21 @@ function restartGame() {
 
             gameOverScreen.classList.add('hidden');
             addEventListeners();
-            gameLoop();
+            // gameLoop(); // Removed to prevent multiple loops
         }
 
         function addEventListeners() {
-            canvas.addEventListener('mousedown', () => bird.velocity = bird.lift);
-            canvas.addEventListener('touchstart', () => bird.velocity = bird.lift);
+            canvas.addEventListener('mousedown', handleInput);
+            canvas.addEventListener('touchstart', handleInput);
+        }
+
+        function removeEventListeners() {
+            canvas.removeEventListener('mousedown', handleInput);
+            canvas.removeEventListener('touchstart', handleInput);
+        }
+
+        function handleInput() {
+            bird.velocity = bird.lift;
         }
 
         function gameLoop() {
@@ -177,21 +180,9 @@ function restartGame() {
             ctx.fillText(`Score: ${score}`, 10, 30);
         }
 
-        function endGame() {
-            gameRunning = false;
-            cancelAnimationFrame(animationId);
-            finalScore.textContent = `Score: ${score}`;
-            if (score > highScore) highScore = score;
-            highScoreDisplay.textContent = `High Score: ${highScore}`;
-            gameOverScreen.classList.remove('hidden');
-        }
-
-        beginButton.addEventListener('click', () => {
-            startScreen.classList.add('hidden');
-            initGame();
-        });
-
-        restartButton.addEventListener('click', initGame);
+        // Event Listeners
+        beginButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame); // Use startGame for restarting as well
     </script>
 </body>
 </html>
