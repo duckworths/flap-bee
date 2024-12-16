@@ -1,178 +1,239 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flap-Bee Game</title>
+    <title>Flap-Bee</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Leaderboard -->
-    <div id="leaderboard">
-        <h2>Leaderboard</h2>
-        <div id="scores"></div>
-    </div>
-
-    <!-- Game Container -->
     <div class="game-container">
         <canvas id="flapBee" width="320" height="480"></canvas>
 
         <!-- Start Screen -->
         <div id="startScreen">
-            <h1>FLAP-BEE</h1>
-            <input type="text" id="playerName" placeholder="Enter your name" />
-            <button id="beginButton">Start Game</button>
+            <h1 style="color: #333;">FLAP-BEE</h1>
+            <button id="beginButton">Click to Begin</button>
         </div>
 
         <!-- Game Over Screen -->
         <div id="gameOverScreen" class="hidden">
-            <h2>Game Over!</h2>
+            Game Over!
             <p id="finalScore">Score: 0</p>
             <p id="highScoreDisplay">High Score: 0</p>
             <button id="restartButton">Play Again</button>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    <script>
+        const canvas = document.getElementById('flapBee');
+        const ctx = canvas.getContext('2d');
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCUu-NauEIoKB9mgNBV9QPl2t4KMKgSYTQ",
-            authDomain: "flap-bee-leaders.firebaseapp.com",
-            projectId: "flap-bee-leaders",
-            storageBucket: "flap-bee-leaders.appspot.com",
-            messagingSenderId: "134828074733",
-            appId: "1:134828074733:web:e58c4959bdecf6de730ee4"
+        // Adjust for high-resolution screens
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        canvas.width = 320 * devicePixelRatio;
+        canvas.height = 480 * devicePixelRatio;
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+
+        // Start and Game Over Screens
+        const startScreen = document.getElementById('startScreen');
+        const beginButton = document.getElementById('beginButton');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScore = document.getElementById('finalScore');
+        const highScoreDisplay = document.getElementById('highScoreDisplay');
+        const restartButton = document.getElementById('restartButton');
+
+        // Load Images
+        const birdImage = new Image();
+        birdImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/FLAPBEE.png';
+
+        const pipeImage = new Image();
+        pipeImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/PIPES.png';
+
+        const backgroundImage = new Image();
+        backgroundImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/background.png';
+
+        // Preload assets
+        const images = [birdImage, pipeImage, backgroundImage];
+        const preloadAssets = (assets, callback) => {
+            let loadedCount = 0;
+            assets.forEach(asset => {
+                asset.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === assets.length) {
+                        callback();
+                    }
+                };
+            });
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Game Constants
+        const pipeWidth = 40;
+        const gap = 160;
 
-        // Submit Score
-        async function submitScore(playerName, playerScore) {
-            await addDoc(collection(db, "leaderboard"), {
-                name: playerName,
-                score: playerScore,
-                timestamp: new Date()
-            });
+        // Game State Variables
+        let bird, pipes, score, gameRunning, animationId;
+
+        // High Score Variable
+        let highScore = 0;
+
+        // Input Handling
+        function handleInput() {
+            if (gameRunning) {
+                bird.velocity = bird.lift;
+            }
         }
 
-        // Display Leaderboard
-        function displayLeaderboard() {
-            const scoresDiv = document.getElementById("scores");
-            const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(5));
-            onSnapshot(q, (snapshot) => {
-                scoresDiv.innerHTML = "<h2>Leaderboard</h2>";
-                let rank = 1;
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.name && typeof data.score === "number") {
-                        scoresDiv.innerHTML += `<p>${rank}. ${data.name} - ${data.score}</p>`;
-                        rank++;
-                    }
-                });
-            });
+        function addEventListeners() {
+            canvas.addEventListener('mousedown', handleInput);
+            canvas.addEventListener('touchstart', handleInput);
         }
-        displayLeaderboard();
 
-        // Game Logic
-        const canvas = document.getElementById("flapBee");
-        const ctx = canvas.getContext("2d");
-        const startScreen = document.getElementById("startScreen");
-        const gameOverScreen = document.getElementById("gameOverScreen");
-        const finalScoreDisplay = document.getElementById("finalScore");
-        const highScoreDisplay = document.getElementById("highScoreDisplay");
-        const playerNameInput = document.getElementById("playerName");
-        const beginButton = document.getElementById("beginButton");
-        const restartButton = document.getElementById("restartButton");
+        function removeEventListeners() {
+            canvas.removeEventListener('mousedown', handleInput);
+            canvas.removeEventListener('touchstart', handleInput);
+        }
 
-        let bird, pipes, score, highScore = 0, gameRunning = false;
-
-        function initGame() {
-            bird = { x: 50, y: 150, velocity: 0 };
-            pipes = [{ x: 320, y: Math.random() * 200 }];
+        // Initialize Game
+        function init() {
+            bird = { x: 50, y: 150, width: 30, height: 30, gravity: 0.3, lift: -6, velocity: 0 };
+            pipes = [];
             score = 0;
             gameRunning = true;
-            gameLoop();
+
+            // Initial pipe
+            pipes.push({ x: canvas.width / devicePixelRatio, y: Math.floor(Math.random() * (canvas.height / devicePixelRatio / 2)) });
+
+            addEventListeners();
         }
 
-        function drawGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#87CEEB"; // Sky blue background
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        function drawBackground() {
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+        }
 
-            // Bird
-            ctx.fillStyle = "yellow";
-            ctx.fillRect(bird.x, bird.y, 30, 30);
+        function drawBird() {
+            ctx.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
+        }
 
-            // Pipes
-            ctx.fillStyle = "green";
+        function drawPipes() {
             pipes.forEach(pipe => {
-                ctx.fillRect(pipe.x, 0, 40, pipe.y);
-                ctx.fillRect(pipe.x, pipe.y + 150, 40, canvas.height - pipe.y - 150);
-            });
+                const topPipeBottomY = pipe.y;
 
-            // Score
-            ctx.fillStyle = "black";
-            ctx.font = "20px Arial";
-            ctx.fillText(`Score: ${score}`, 10, 20);
+                // Draw top pipe (flipped)
+                ctx.save();
+                ctx.translate(pipe.x + pipeWidth / 2, topPipeBottomY);
+                ctx.rotate(Math.PI);
+                ctx.drawImage(pipeImage, -pipeWidth / 2, 0, pipeWidth, pipeImage.height);
+                ctx.restore();
+
+                // Draw bottom pipe
+                ctx.drawImage(pipeImage, pipe.x, pipe.y + gap, pipeWidth, pipeImage.height);
+            });
         }
 
-        function updateGame() {
-            bird.velocity += 0.5;
-            bird.y += bird.velocity;
+        function drawScore() {
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('Score: ' + score, 10, 30);
+        }
 
-            pipes.forEach((pipe, i) => {
+        function updatePipes() {
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
                 pipe.x -= 2;
-                if (pipe.x + 40 < 0) {
+
+                if (pipe.x + pipeWidth < 0) {
                     pipes.splice(i, 1);
                     score++;
-                    pipes.push({ x: 320, y: Math.random() * 200 });
+                    pipes.push({
+                        x: canvas.width / devicePixelRatio,
+                        y: Math.floor(Math.random() * (canvas.height / devicePixelRatio / 2))
+                    });
                 }
+
+                // Collision detection
                 if (
-                    bird.x < pipe.x + 40 &&
-                    bird.x + 30 > pipe.x &&
-                    (bird.y < pipe.y || bird.y + 30 > pipe.y + 150)
+                    bird.x < pipe.x + pipeWidth &&
+                    bird.x + bird.width > pipe.x &&
+                    (bird.y < pipe.y || bird.y + bird.height > pipe.y + gap)
                 ) {
                     endGame();
                 }
-            });
+            }
+        }
 
-            if (bird.y > canvas.height || bird.y < 0) {
+        function updateBird() {
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+
+            if (bird.y + bird.height > canvas.height / devicePixelRatio || bird.y < 0) {
                 endGame();
             }
         }
 
         function gameLoop() {
-            if (!gameRunning) return;
-            updateGame();
-            drawGame();
-            requestAnimationFrame(gameLoop);
+            if (gameRunning) {
+                ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+
+                drawBackground(); // Draw the background
+                drawBird();
+                drawPipes();
+                drawScore();
+
+                updateBird();
+                updatePipes();
+
+                animationId = requestAnimationFrame(gameLoop);
+            }
         }
 
         function endGame() {
             gameRunning = false;
-            finalScoreDisplay.textContent = `Score: ${score}`;
-            if (score > highScore) highScore = score;
-            highScoreDisplay.textContent = `High Score: ${highScore}`;
-            submitScore(playerNameInput.value.trim() || "Anonymous", score);
-            gameOverScreen.classList.remove("hidden");
+            cancelAnimationFrame(animationId);
+            removeEventListeners();
+            finalScore.textContent = 'Score: ' + score;
+
+            if (score > highScore) {
+                highScore = score;
+            }
+            highScoreDisplay.textContent = 'High Score: ' + highScore;
+
+            gameOverScreen.classList.remove('hidden');
         }
 
-        beginButton.addEventListener("click", () => {
-            startScreen.classList.add("hidden");
-            gameOverScreen.classList.add("hidden");
-            initGame();
+        function startGame() {
+            startScreen.classList.add('hidden');
+            init();
+            gameLoop();
+        }
+
+        function restartGame() {
+            gameOverScreen.classList.add('hidden');
+            init();
+            gameLoop();
+        }
+
+        // Fullscreen support
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        beginButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', restartGame);
+
+        // Preload assets before starting the game
+        preloadAssets(images, () => {
+            console.log("Assets loaded. Ready to play!");
         });
 
-        restartButton.addEventListener("click", () => {
-            gameOverScreen.classList.add("hidden");
-            initGame();
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F') {
+                toggleFullscreen();
+            }
         });
     </script>
 </body>
