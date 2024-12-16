@@ -4,69 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flap-Bee</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #e6f7ff; /* Light blue background */
-        }
-        .game-container {
-            position: relative;
-            width: 320px;
-            height: 480px;
-            margin: 50px auto;
-            background: #fff;
-            border: 2px solid #000;
-        }
-        canvas {
-            display: block;
-        }
-        #startScreen, #gameOverScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-        .hidden {
-            display: none;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="game-container">
-        <!-- Canvas -->
         <canvas id="flapBee" width="320" height="480"></canvas>
 
         <!-- Start Screen -->
         <div id="startScreen">
-            <h1>FLAP-BEE</h1>
+            <h1 style="color: #333;">FLAP-BEE</h1>
             <button id="beginButton">Click to Begin</button>
         </div>
 
         <!-- Game Over Screen -->
         <div id="gameOverScreen" class="hidden">
-            <h2>Game Over!</h2>
+            Game Over!
             <p id="finalScore">Score: 0</p>
             <p id="highScoreDisplay">High Score: 0</p>
             <button id="restartButton">Play Again</button>
@@ -74,65 +26,64 @@
     </div>
 
     <script>
-        // Canvas Setup
         const canvas = document.getElementById('flapBee');
         const ctx = canvas.getContext('2d');
 
-        // Scale for High DPI screens
+        // Adjust for high-resolution screens
         const devicePixelRatio = window.devicePixelRatio || 1;
         canvas.width = 320 * devicePixelRatio;
         canvas.height = 480 * devicePixelRatio;
         ctx.scale(devicePixelRatio, devicePixelRatio);
 
-        // Game State Variables
+        // Start and Game Over Screens
         const startScreen = document.getElementById('startScreen');
         const beginButton = document.getElementById('beginButton');
         const gameOverScreen = document.getElementById('gameOverScreen');
         const finalScore = document.getElementById('finalScore');
         const highScoreDisplay = document.getElementById('highScoreDisplay');
         const restartButton = document.getElementById('restartButton');
-        let bird, pipes, score, gameRunning, animationId;
-        let highScore = 0;
 
-        // Game Images
+        // Load Images
         const birdImage = new Image();
         birdImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/FLAPBEE.png';
+
         const pipeImage = new Image();
         pipeImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/PIPES.png';
+
         const backgroundImage = new Image();
         backgroundImage.src = 'https://mitchellsnursery.com/wp-content/uploads/2024/12/background.png';
 
-        // Start Game
-        function startGame() {
-            // Hide screens
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-
-            // Initialize game
-            initGame();
-            gameLoop();
-        }
-
-        // Initialize Game
-        function initGame() {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
-
-            // Initialize variables
-            bird = { x: 50, y: 150, width: 30, height: 30, gravity: 0.3, lift: -6, velocity: 0 };
-            pipes = [];
-            score = 0;
-            gameRunning = true;
-
-            pipes.push({
-                x: canvas.width / devicePixelRatio,
-                y: Math.floor(Math.random() * (canvas.height / devicePixelRatio / 2)),
+        // Preload assets
+        const images = [birdImage, pipeImage, backgroundImage];
+        const preloadAssets = (assets, callback) => {
+            let loadedCount = 0;
+            assets.forEach(asset => {
+                asset.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === assets.length) {
+                        callback();
+                    }
+                };
             });
+        };
 
-            addEventListeners();
+        // Game Constants
+        const pipeWidth = 40;
+        const gap = 160;
+
+        // Game State Variables
+        let bird, pipes, score, gameRunning, animationId;
+
+        // High Score Variable
+        let highScore = 0;
+
+        // Input Handling
+        function handleInput() {
+            if (gameRunning) {
+                bird.velocity = bird.lift;
+            }
         }
 
-        // Event Listeners
         function addEventListeners() {
             canvas.addEventListener('mousedown', handleInput);
             canvas.addEventListener('touchstart', handleInput);
@@ -143,36 +94,74 @@
             canvas.removeEventListener('touchstart', handleInput);
         }
 
-        function handleInput() {
-            bird.velocity = bird.lift;
+        // Initialize Game
+        function init() {
+            bird = { x: 50, y: 150, width: 30, height: 30, gravity: 0.3, lift: -6, velocity: 0 };
+            pipes = [];
+            score = 0;
+            gameRunning = true;
+
+            // Initial pipe
+            pipes.push({ x: canvas.width / devicePixelRatio, y: Math.floor(Math.random() * (canvas.height / devicePixelRatio / 2)) });
+
+            addEventListeners();
         }
 
-        // Game Loop
-        function gameLoop() {
-            if (gameRunning) {
-                ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
-                drawBackground();
-                drawBird();
-                updateBird();
-                drawPipes();
-                updatePipes();
-                drawScore();
-
-                animationId = requestAnimationFrame(gameLoop);
-            }
-        }
-
-        // Draw Background
         function drawBackground() {
             ctx.drawImage(backgroundImage, 0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
         }
 
-        // Draw Bird
         function drawBird() {
             ctx.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
         }
 
-        // Update Bird
+        function drawPipes() {
+            pipes.forEach(pipe => {
+                const topPipeBottomY = pipe.y;
+
+                // Draw top pipe (flipped)
+                ctx.save();
+                ctx.translate(pipe.x + pipeWidth / 2, topPipeBottomY);
+                ctx.rotate(Math.PI);
+                ctx.drawImage(pipeImage, -pipeWidth / 2, 0, pipeWidth, pipeImage.height);
+                ctx.restore();
+
+                // Draw bottom pipe
+                ctx.drawImage(pipeImage, pipe.x, pipe.y + gap, pipeWidth, pipeImage.height);
+            });
+        }
+
+        function drawScore() {
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('Score: ' + score, 10, 30);
+        }
+
+        function updatePipes() {
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
+                pipe.x -= 2;
+
+                if (pipe.x + pipeWidth < 0) {
+                    pipes.splice(i, 1);
+                    score++;
+                    pipes.push({
+                        x: canvas.width / devicePixelRatio,
+                        y: Math.floor(Math.random() * (canvas.height / devicePixelRatio / 2))
+                    });
+                }
+
+                // Collision detection
+                if (
+                    bird.x < pipe.x + pipeWidth &&
+                    bird.x + bird.width > pipe.x &&
+                    (bird.y < pipe.y || bird.y + bird.height > pipe.y + gap)
+                ) {
+                    endGame();
+                }
+            }
+        }
+
         function updateBird() {
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
@@ -182,64 +171,70 @@
             }
         }
 
-        // Draw Pipes
-        function drawPipes() {
-            pipes.forEach(pipe => {
-                ctx.drawImage(pipeImage, pipe.x, pipe.y, 40, 320);
-                ctx.drawImage(pipeImage, pipe.x, pipe.y + 160 + 320, 40, 320);
-            });
+        function gameLoop() {
+            if (gameRunning) {
+                ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+
+                drawBackground(); // Draw the background
+                drawBird();
+                drawPipes();
+                drawScore();
+
+                updateBird();
+                updatePipes();
+
+                animationId = requestAnimationFrame(gameLoop);
+            }
         }
 
-        // Update Pipes
-        function updatePipes() {
-            pipes.forEach((pipe, index) => {
-                pipe.x -= 2;
-                if (pipe.x + 40 < 0) {
-                    pipes.splice(index, 1);
-                    pipes.push({
-                        x: canvas.width / devicePixelRatio,
-                        y: Math.floor(Math.random() * (canvas.height / devicePixelRatio / 2)),
-                    });
-                    score++;
-                }
-                if (
-                    bird.x < pipe.x + 40 &&
-                    bird.x + bird.width > pipe.x &&
-                    (bird.y < pipe.y + 320 || bird.y + bird.height > pipe.y + 160 + 320)
-                ) {
-                    endGame();
-                }
-            });
-        }
-
-        // Draw Score
-        function drawScore() {
-            ctx.fillStyle = 'black';
-            ctx.font = '20px Arial';
-            ctx.fillText(`Score: ${score}`, 10, 30);
-        }
-
-        // End Game
         function endGame() {
             gameRunning = false;
             cancelAnimationFrame(animationId);
             removeEventListeners();
+            finalScore.textContent = 'Score: ' + score;
 
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+            if (score > highScore) {
+                highScore = score;
+            }
+            highScoreDisplay.textContent = 'High Score: ' + highScore;
 
-            // Update scores
-            finalScore.textContent = `Score: ${score}`;
-            if (score > highScore) highScore = score;
-            highScoreDisplay.textContent = `High Score: ${highScore}`;
-
-            // Show Game Over screen
             gameOverScreen.classList.remove('hidden');
         }
 
-        // Button Event Listeners
+        function startGame() {
+            startScreen.classList.add('hidden');
+            init();
+            gameLoop();
+        }
+
+        function restartGame() {
+            gameOverScreen.classList.add('hidden');
+            init();
+            gameLoop();
+        }
+
+        // Fullscreen support
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
         beginButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', restartGame);
+
+        // Preload assets before starting the game
+        preloadAssets(images, () => {
+            console.log("Assets loaded. Ready to play!");
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F') {
+                toggleFullscreen();
+            }
+        });
     </script>
 </body>
 </html>
