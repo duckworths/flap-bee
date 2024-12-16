@@ -24,6 +24,28 @@
             <button id="restartButton">Play Again</button>
         </div>
     </div>
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCUu-NauEIoKB9mgNBV9QPl2t4KMKgSYTQ",
+  authDomain: "flap-bee-leaders.firebaseapp.com",
+  databaseURL: "https://flap-bee-leaders-default-rtdb.firebaseio.com",
+  projectId: "flap-bee-leaders",
+  storageBucket: "flap-bee-leaders.firebasestorage.app",
+  messagingSenderId: "134828074733",
+  appId: "1:134828074733:web:e58c4959bdecf6de730ee4",
+  measurementId: "G-N45TVXFM8M"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
     <script>
         const canvas = document.getElementById('flapBee');
